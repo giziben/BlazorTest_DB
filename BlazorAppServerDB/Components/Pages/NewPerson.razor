@@ -1,0 +1,104 @@
+﻿@page "/newperson/{PersonId:int}"
+@rendermode InteractiveServer
+@using BlazorAppServerDB.Models
+@using BlazorAppServerDB.Services
+@inject CustomerService service
+
+@if (PersonId == -1)
+{
+	<h3>New Person</h3>
+}
+else
+{
+	<h3>Edit Person</h3>
+}
+
+<!--  After Delete @person is null!! -->
+@if (person != null)
+{
+	<EditForm Model="@person" OnValidSubmit="@SavePerson">
+	<DataAnnotationsValidator/>
+	<ValidationSummary/>
+
+	<div class="mb-2">
+		<label for=fn>First Name</label>
+		<InputText id='fn' @bind-Value=@person.FirstName />
+	</div>
+	<div class="mb-2">
+		<label for=ln>Last Name</label>
+		<InputText id='ln' @bind-Value=@person.LastName />
+	</div>
+	<div class="mb-2">
+		<label for=ag>Age</label>
+		<InputNumber id='ag' @bind-Value=@person.Age />
+	</div>
+	<div class="mb-2">
+		<label for=em>Email</label>
+		<InputText id='em' @bind-Value=@person.Email />
+	</div>
+	<div>
+		<InputSelect class="form-select-sm" @bind-Value=person.CountryID>
+			@foreach (var item in Countries)
+			{
+				<option value="@item.CountryID">@item.CountryName</option>
+			}
+		</InputSelect>
+	</div>
+	<br /> <br />
+	<button type="submit">Save</button>
+	<button type="button" @onclick="Cancelop">Cancel</button>
+
+
+</EditForm>
+}
+@code {
+	[Parameter]  public int PersonId { get; set; } = -1;
+	[Parameter]	public EventCallback<bool> SetVisible { get; set; }
+	[Parameter] public EventCallback<bool> SetDisplayAlert { get; set; }
+
+	Person? person;
+	List<Country> Countries;
+	protected override async Task OnParametersSetAsync()
+	{
+		try
+		{
+			if (PersonId == -1)
+			{
+				person = new Person();
+			}
+			else
+			{
+				int pers = PersonId;
+				person = await service.GetPersonAsync(pers);
+			}
+			Countries = await service.GetAllCountries();	
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+		}
+	}
+
+
+	private void Cancelop()
+	{
+		SetVisible.InvokeAsync(false);
+		SetDisplayAlert.InvokeAsync(false);
+	}
+	private async void SavePerson()
+	{
+		if (PersonId > 0 )
+		{
+			await service.UpdatePersonAsync(person);
+			SetDisplayAlert.InvokeAsync(true);
+		}
+		else
+		{
+			await service.AddPersonAsync(person);
+			SetDisplayAlert.InvokeAsync(true);
+		}
+		// Reverse the hide/show
+		SetVisible.InvokeAsync(false);
+
+	}	
+}

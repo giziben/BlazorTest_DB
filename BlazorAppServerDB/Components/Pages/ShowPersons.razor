@@ -1,0 +1,132 @@
+﻿@page "/showpersons"
+@rendermode InteractiveServer
+@using BlazorAppServerDB.Models
+@using BlazorAppServerDB.Services
+
+@inject CustomerService service
+
+<h3>Show All Customers</h3>
+
+<div class="row bg-light" hidden="@showNewPerson">
+    <div class="col-md-12">
+        <button class="btn btn-primary" @onclick="@RefreshData">Refresh</button>
+        <br/>
+        <br/>
+        <button class="btn btn-primary" @onclick="AddPerson">New Person</button>
+        <br />
+        <br />
+    </div>
+    
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>Person Id</th>
+                <th>FirstName</th>
+                <th>Lastname</th>
+                <th>Age</th>
+                <th>Email</th>
+                <th>Country</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Persons.Any())
+            {
+                @foreach (var person in Persons)
+                {
+                    <tr>
+                        <td>@person.ID</td>
+                        <td>@person.FirstName</td>
+                        <td>@person.LastName</td>
+                        <td>@person.Age</td>
+                        <td>@person.Email</td>
+                        <td>@person.Country?.CountryName</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => EditPerson(person)">
+                                Edit
+                            </button>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-danger" @onclick="() => DeletePerson(person.ID)">
+                            Delete</button>
+                         </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="6"><strong>No Persons available</strong></td></tr>
+            }
+        </tbody>
+    </table>
+
+
+</div>
+
+<div hidden="@(!showNewPerson)">
+    <NewPerson PersonId=personID SetVisible="SetVisibleSection" SetDisplayAlert="SetAlert" />
+</div>
+
+@if (DisplayAlert)
+{
+    <br />
+    <br />
+    <div class="alert alert-success fade-in" role="alert">
+        Data saved!
+    </div>
+}
+
+@code {
+    bool Busy;
+    bool DisplayAlert;
+
+    bool showNewPerson;
+    int personID = -1;
+    int error = 0;
+    public List<Person> Persons { get; set; }
+    public List<Country> Countries { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+    private async Task RefreshData()
+    {
+        Persons = await service.GetPersonsAsync();
+        Countries = await service.GetAllCountries();
+    }
+    private async void DeletePerson(int id)
+    {
+        try
+        {
+            await service.DeletePersonAsync(id);
+            await RefreshData();
+        }
+        catch (Exception ex)
+        {
+            error = 1;
+        }
+    }
+    private void AddPerson()
+    {
+        personID = -1;
+        showNewPerson = true;
+        DisplayAlert = false;
+    }
+    private void EditPerson(Person person)
+    {
+        personID = person.ID;
+        showNewPerson = true;
+        DisplayAlert = false;
+    }
+
+    private async void SetVisibleSection(bool val)
+	{
+        showNewPerson = val;
+        await RefreshData();
+	}
+    private void SetAlert(bool val)
+	{
+		DisplayAlert = val;
+       
+	}
+}
