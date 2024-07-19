@@ -6,9 +6,9 @@ namespace BlazorAppServerDB.Services
 {
     public class CustomerService
     {
-        private PersonContext? dbContext;
+        private CustomersContext? dbContext;
 
-        public CustomerService(PersonContext context)
+        public CustomerService(CustomersContext context)
         {
             dbContext = context;
         }

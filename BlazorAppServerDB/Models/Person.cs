@@ -18,6 +18,6 @@ namespace BlazorAppServerDB.Models
         public string? Email { get; set; }
         public int? CountryID { get; set; }
 		// Navigation
-		public Country? Country { get; set; }
+		public virtual Country? Country { get; set; }
     }
 }

@@ -17,7 +17,7 @@ builder.Services.AddRazorComponents()
 // Connection string from Settings
 var connectionString = builder.Configuration.GetConnectionString("CustomersDB");
 // SQLite inject service
-builder.Services.AddSqlite<PersonContext>(connectionString);
+builder.Services.AddSqlite<CustomersContext>(connectionString);
 //builder.Services.AddDbContextFactory<PersonContext>(options => options.UseSqlite(connectionString));
 
 // Our our service so it can be injected to the page
