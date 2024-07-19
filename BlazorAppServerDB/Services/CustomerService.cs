@@ -6,7 +6,7 @@ namespace BlazorAppServerDB.Services
 {
     public class CustomerService
     {
-        private PersonContext dbContext;
+        private PersonContext? dbContext;
 
         public CustomerService(PersonContext context)
         {
@@ -14,21 +14,14 @@ namespace BlazorAppServerDB.Services
         }
         public async Task<List<Person>> GetPersonsAsync()
         {
-            var persons = await dbContext.Persons.ToListAsync();
-            // Add the country to the person
-            foreach (var person in persons)
-			{
-				if (person.CountryID != null)
-				{
-					person.Country = await dbContext.Countries.FirstOrDefaultAsync(c => c.CountryID == person.CountryID);
-				}
-			}
+            // Include the related country entity
+            var persons = await dbContext.Persons.Include(x=>x.Country).ToListAsync();
             return persons;
         }
 
         public async Task<Person> GetPersonAsync(int personID)
 		{
-			return await dbContext.Persons.FirstOrDefaultAsync(p => p.ID == personID);
+			return await dbContext.Persons.Include(x => x.Country).FirstOrDefaultAsync(p => p.ID == personID);
 		}
         public async Task<Person> AddPersonAsync(Person person)
         {
